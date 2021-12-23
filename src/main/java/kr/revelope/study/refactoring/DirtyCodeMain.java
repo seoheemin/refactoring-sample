@@ -1,7 +1,7 @@
 package kr.revelope.study.refactoring;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -18,23 +18,17 @@ public class DirtyCodeMain {
 		}
 
 		String fileName = args[0];
-		String targetColumn = args[1];
+		String targetColumnName = args[1];
 
 		try {
-			File file = new File(fileName);
+			FileReader reader = new FileReader(fileName);
 
-			String[] header = file.getFileHeader().split(",");
-			int length = header.length;
-			int targetIndex = Arrays.asList(header).indexOf(targetColumn);
+			String header = reader.readHeader();
+			List<String> contents = reader.readContents();
 
-			if (targetIndex == -1) {
-				throw new IllegalStateException("Can not found target column '" + targetColumn + "'");
-			}
+			File csvFile = new File(header, contents);
 
-			file.getFileContents().stream()
-				.map(content -> content.split(","))
-				.filter(content -> content.length == length)
-				.map(content -> content[targetIndex])
+			csvFile.findTargetColumn(targetColumnName).stream()
 				.collect(Collectors.groupingBy(target -> target))
 				.forEach((key, value) -> System.out.println(key + ":" + value.size()));
 		} catch (IOException e) {

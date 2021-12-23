@@ -1,34 +1,32 @@
 package kr.revelope.study.refactoring;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class File {
-	private String fileName;
-	private BufferedReader reader;
+	private String header;
+	private List<String> contents;
 
-	public File(String fileName) {
-		this.fileName = fileName;
-		setBufferedReader();
+	public File(String header, List<String> contents) {
+		this.header = header;
+		this.contents = contents;
 	}
 
-	private void setBufferedReader() {
-		this.reader = Optional.ofNullable(DirtyCodeMain.class.getClassLoader().getResourceAsStream(fileName))
-			.map(is -> new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
-			.orElseThrow(() -> new IllegalArgumentException("'" + fileName + "' file can not found."));
-	}
+	public List<String> findTargetColumn(String targetColumnName) {
+		String[] columns = header.split(",");
 
-	public String getFileHeader() throws IOException {
-		return Optional.ofNullable(reader.readLine())
-			.orElseThrow(() -> new IllegalArgumentException("First line must be columns. Column can not found."));
-	}
+		int length = columns.length;
+		int targetColumnIndex = Arrays.asList(columns).indexOf(targetColumnName);
 
-	public List<String> getFileContents() throws IOException {
-		return reader.lines().collect(Collectors.toList());
+		if (targetColumnIndex == -1) {
+			throw new IllegalStateException("Can not found target column '" + targetColumnName + "'");
+		}
+
+		return contents.stream()
+			.map(content -> content.split(","))
+			.filter(content -> content.length == length)
+			.map(content -> content[targetColumnIndex])
+			.collect(Collectors.toList());
 	}
 }
