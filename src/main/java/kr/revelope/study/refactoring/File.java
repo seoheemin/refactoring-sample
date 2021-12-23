@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class File {
 	private String fileName;
@@ -29,13 +29,6 @@ public class File {
 	}
 
 	public List<String> getFileContents() throws IOException {
-		List<String> fileContents = new ArrayList<>();
-
-		String content;
-		while((content = reader.readLine()) != null) {
-			fileContents.add(content);
-		}
-
-		return fileContents;
+		return reader.lines().collect(Collectors.toList());
 	}
 }
