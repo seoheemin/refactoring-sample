@@ -12,9 +12,13 @@ public class FileReader {
 	private BufferedReader reader;
 
 	public FileReader(String fileName) {
-		this.reader = Optional.ofNullable(DirtyCodeMain.class.getClassLoader().getResourceAsStream(fileName))
-		.map(is -> new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
-		.orElseThrow(() -> new IllegalArgumentException("'" + fileName + "' file can not found."));
+		this.reader = makeFileReader(fileName);
+	}
+
+	private BufferedReader makeFileReader(String fileName) {
+		return Optional.ofNullable(DirtyCodeMain.class.getClassLoader().getResourceAsStream(fileName))
+			.map(is -> new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
+			.orElseThrow(() -> new IllegalArgumentException("'" + fileName + "' file can not found."));
 	}
 
 	public String readHeader() throws IOException {
