@@ -1,32 +1,42 @@
 package kr.revelope.study.refactoring;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.nio.charset.Charset;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-public class FileReader {
-	private BufferedReader reader;
+public class FileReader implements Closeable {
+	private final BufferedReader bufferedReader;
 
-	public FileReader(String fileName) {
-		this.reader = makeFileReader(fileName);
+	public FileReader(String fileName) throws Exception {
+		this.bufferedReader = makeBufferReader(fileName);
 	}
 
-	private BufferedReader makeFileReader(String fileName) {
-		return Optional.ofNullable(DirtyCodeMain.class.getClassLoader().getResourceAsStream(fileName))
-			.map(is -> new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
-			.orElseThrow(() -> new IllegalArgumentException("'" + fileName + "' file can not found."));
+	public BufferedReader makeBufferReader(String fileName) throws Exception {
+		File file = new File(
+			Optional.ofNullable(DirtyCodeMain.class.getClassLoader().getResource(fileName))
+				.orElseThrow(() -> new FileNotFoundException(String.format("%s file can not found.", fileName)))
+				.toURI()
+		);
+
+		CharsetDetector charsetDetector = new CharsetDetector();
+		Charset charset = Optional.ofNullable(charsetDetector.getCharset(file))
+			.orElseThrow(() -> new IOException("UTF-8 또는 MS949 형식의 파일이 아닙니다."));
+
+		return new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
 	}
 
-	public String readHeader() throws IOException {
-		return Optional.ofNullable(reader.readLine())
-			.orElseThrow(() -> new IllegalArgumentException("First line must be columns. Column can not found."));
+	public BufferedReader getBufferedReader() {
+		return this.bufferedReader;
 	}
 
-	public List<String> readContents() throws IOException {
-		return reader.lines().collect(Collectors.toList());
+	@Override
+	public void close() {
+
 	}
 }
